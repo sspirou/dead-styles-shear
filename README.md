@@ -1,5 +1,5 @@
 # dead-styles-shear
-Py scripts for identifying and trimming dead style rules from a website directory
+Py scripts for identifying and trimming dead style rules from a website directory. Written in python 2.7
 
 ----------
 ### Identify Dead Style Rules
