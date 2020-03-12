@@ -2,9 +2,28 @@ import sys, os
 # import code # <--- for debugging
 # code.interact(local=locals()) # <--- for debugging
 
-def main(pathToDirectory):
+def main(pathToDirectory, ignoreJS=False):
     deadStylesList = usedSelectorsList = allSelectorsList = []
+    
+    # list all css, scss, js, and html files in desired directory tree
     filesList = recursiveList(pathToDirectory)
+
+    # build all & used selectors lists based on retrieved files list
+    for fileToCheck in filesList:
+        if fileToCheck.endswith('css') and os.path.isfile(fileToCheck):
+            allSelectorsList = uniqueJoin(allSelectorsList, getSelectorsList(fileToCheck))
+        elif os.path.isfile(fileToCheck):
+            usedSelectorsList = uniqueJoin(usedSelectorsList, getSelectorsList(fileToCheck))
+    # these lists are built to contain unique sets within, usedSelectorsList may not be a subset of allSelectorsList
+
+    # build dead styles list by comparing all & used selectors lists from above
+    for selector in allSelectorsList:
+        if not selector in usedSelectorsList:
+            deadStylesList.append(selector + ' {}')
+
+    # write output file with selectors from deadStylesList
+    with open('deadStyles.css', 'w') as outputFile:
+        outputFile.writelines(deadStylesList)
 
     exit(0)
     
@@ -26,12 +45,14 @@ def recursiveList(pathToDir):
 
 # single function wrapping 3 unique file type options (html, js, css)
 def getSelectorsList(sourceFile):
+    selectorsList = []
     if sourceFile.endswith('.html'):
-        return getSelectorsListHTML(sourceFile)
+        selectorsList = getSelectorsListHTML(sourceFile)
     elif sourceFile.endswith('.js'):
-        return getSelectorsListJS(sourceFile)
+        selectorsList = getSelectorsListJS(sourceFile)
     else:
-        return getSelectorsListCSS(sourceFile)
+        selectorsList = getSelectorsListCSS(sourceFile)
+    return removeDuplicates(selectorsList)
 
 def getSelectorsListHTML(sourceFile):
     selectorsList = []
@@ -70,7 +91,12 @@ def removeDuplicates(listToClean):
     return resultList
 
 if __name__ == "__main__":
-    if (sys.argv.__len__() <= 1):
+    ignoreJS = False
+    if len(sys.argv) < 2:
         print("pathToDirectory is required")
         exit(1)
-    main(sys.argv[1])
+    elif len(sys.argv) > 2:
+        arg2 = sys.argv[2].lower()
+        if arg2 == 'true' or arg2 == 'ignorejs':
+            ignoreJS = True
+    main(sys.argv[1], ignoreJS)
