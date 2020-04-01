@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, re
 # import code # <--- for debugging
 # code.interact(local=locals()) # <--- for debugging
 
@@ -59,13 +59,34 @@ def getSelectorsListHTML(sourceFile):
     with open(sourceFile, 'r') as f:
         # parse selectors and append to selectorsList
         lines = f.readlines()
+        for line in lines:
+            selectorsOnLine = []
+            line = removeCommentsHTML(line)
+            if '<' in line:
+                spaceSplit = line.split(' ')
+                # tag type
+                selectorsOnLine.append(spaceSplit[0][1])
+            selectorsList = uniqueJoin(selectorsList, removeDuplicates(selectorsOnLine))
     return selectorsList
+
+def removeCommentsHTML(htmlString):
+    s = htmlString[:-htmlString.find("<!--")] + htmlString[htmlString.find("-->"):]
+    if (s.find("<!--") > -1):
+        s = removeCommentsHTML(s)
+    return s
+
+def getNextSelectorHTML(htmlString):
+    selector = ""
+    return selector
 
 def getSelectorsListJS(sourceFile):
     selectorsList = []
     with open(sourceFile, 'r') as f:
         # parse selectors and append to selectorsList
         lines = f.readlines()
+        for line in lines:
+            selectorsOnLine = []
+            selectorsList = uniqueJoin(selectorsList, selectorsOnLine)
     return selectorsList
 
 def getSelectorsListCSS(sourceFile):
@@ -73,6 +94,9 @@ def getSelectorsListCSS(sourceFile):
     with open(sourceFile, 'r') as f:
         # parse selectors and append to selectorsList
         lines = f.readlines()
+        for line in lines:
+            selectorsOnLine = []
+            selectorsList = uniqueJoin(selectorsList, selectorsOnLine)
     return selectorsList
 
 # assumes list1 is already unique
